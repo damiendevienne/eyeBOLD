@@ -5,3 +5,37 @@ body {
 table { 
   font-size: 0.9rem; 
 }
+
+#countries-container, #climates-container {
+  max-height: 300px;       /* or any height you prefer */
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 6px 10px;
+  background-color: white; /* neutral background */
+}
+
+.geo-block {
+  background-color: white;
+  transition: background-color 0.2s ease;
+}
+
+
+.continent-block {
+  /* padding: 6px; */
+  /* border-bottom: 1px solid #eee; */
+}
+
+.continent-block:hover {
+  background-color: #f3f3f3;
+}
+
+.geo-block.disabled-block {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.geo-block.active {
+  background-color: #e9f0fa;
+  border: 1px solid #21588f;
+}

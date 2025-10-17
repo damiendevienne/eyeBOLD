@@ -1,13 +1,34 @@
-// taxonomy.js
+// taxonomy.js — fixed lazy loading + first level visible
 
-async function loadTaxonomy() {
-  const res = await fetch("/api/taxonomy_json");
-  const taxonomy = await res.json();
-
+document.addEventListener("DOMContentLoaded", async () => {
   const container = document.getElementById("taxonomy-container");
+  container.innerHTML = "<p class='text-muted'>Loading taxonomy...</p>";
+
+  let taxonomyData = null;
+
+  // --- Load taxonomy data ---
+  try {
+    const res = await fetch("/api/taxonomy_json");
+    if (!res.ok) throw new Error("Failed to load taxonomy");
+    taxonomyData = await res.json();
+  } catch (err) {
+    console.error("Error loading taxonomy:", err);
+    container.innerHTML = "<p class='text-danger'>Failed to load taxonomy data.</p>";
+    return;
+  }
+
   container.innerHTML = "";
 
-  function createNode(node, isRootChild = false) {
+  // --- Ensure array of roots ---
+  const roots = Array.isArray(taxonomyData) ? taxonomyData : [taxonomyData];
+
+  const rootUl = document.createElement("ul");
+  rootUl.style.listStyleType = "none";
+  rootUl.style.paddingLeft = "0";
+  container.appendChild(rootUl);
+
+  // --- Recursive creation ---
+  function createNode(node, showChildren = false) {
     const li = document.createElement("li");
     li.className = "taxonomy-node";
 
@@ -15,20 +36,21 @@ async function loadTaxonomy() {
     wrapper.style.display = "flex";
     wrapper.style.alignItems = "center";
 
-    // toggle arrow
     const hasChildren = node.children && node.children.length > 0;
+
+    // Toggle arrow
     const toggle = document.createElement("span");
-    toggle.textContent = hasChildren ? (isRootChild ? "▼" : "►") : "";
-    toggle.style.cursor = "pointer";
+    toggle.textContent = hasChildren ? (showChildren ? "▼" : "►") : "";
+    toggle.style.cursor = hasChildren ? "pointer" : "default";
     toggle.style.userSelect = "none";
     toggle.style.marginRight = "5px";
 
-    // checkbox
+    // Checkbox
     const checkbox = document.createElement("input");
     checkbox.type = "checkbox";
     checkbox.id = `node-${node.name}`;
 
-    // label
+    // Label
     const label = document.createElement("label");
     label.htmlFor = checkbox.id;
     label.textContent = `${node.name}${node.rank ? " (" + node.rank + ")" : ""}`;
@@ -39,21 +61,36 @@ async function loadTaxonomy() {
     wrapper.appendChild(label);
     li.appendChild(wrapper);
 
-    // children
+    // Container for potential children
     let ul = null;
     if (hasChildren) {
       ul = document.createElement("ul");
       ul.style.listStyleType = "none";
       ul.style.marginLeft = "20px";
-      node.children.forEach(child => ul.appendChild(createNode(child)));
       li.appendChild(ul);
 
-      // show first level by default
-      ul.style.display = isRootChild ? "block" : "none";
+      let loaded = false;
 
-      // toggle arrow click
-      toggle.addEventListener("click", () => {
+      async function loadChildren() {
+        if (loaded) return;
+        node.children.forEach((child) => {
+          ul.appendChild(createNode(child));
+        });
+        loaded = true;
+      }
+
+      // If we want this node's children visible from start (root)
+      if (showChildren) {
+        loadChildren();
+        ul.style.display = "block";
+      } else {
+        ul.style.display = "none";
+      }
+
+      // Toggle click
+      toggle.addEventListener("click", async () => {
         if (ul.style.display === "none") {
+          await loadChildren();
           ul.style.display = "block";
           toggle.textContent = "▼";
         } else {
@@ -63,27 +100,23 @@ async function loadTaxonomy() {
       });
     }
 
-    // parent → children checkbox behavior
+    // Checkbox cascade
     checkbox.addEventListener("change", () => {
       if (ul) {
-        ul.querySelectorAll("input[type=checkbox]").forEach(cb => cb.checked = checkbox.checked);
+        requestIdleCallback(() => {
+          ul.querySelectorAll("input[type=checkbox]").forEach(
+            (cb) => (cb.checked = checkbox.checked)
+          );
+        });
       }
     });
 
     return li;
   }
 
-  const rootUl = document.createElement("ul");
-  rootUl.style.listStyleType = "none";
-  rootUl.style.paddingLeft = "0";
-
-  // Ensure taxonomy is always an array
-  const nodesArray = Array.isArray(taxonomy) ? taxonomy : [taxonomy];
-
-  // First level expanded
-  nodesArray.forEach(node => rootUl.appendChild(createNode(node, true)));
-
-  container.appendChild(rootUl);
-}
-
-document.addEventListener("DOMContentLoaded", loadTaxonomy);
+  // --- Build the tree: root visible, first level open ---
+  roots.forEach((node) => {
+    const li = createNode(node, true);
+    rootUl.appendChild(li);
+  });
+});
