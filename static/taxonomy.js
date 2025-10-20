@@ -1,4 +1,4 @@
-// taxonomy.js — fixed layout with arrows inline and Bootstrap checkboxes
+// taxonomy.js — full tree with lazy loading, arrows, and checkbox propagation
 
 document.addEventListener("DOMContentLoaded", async () => {
   const container = document.getElementById("taxonomy-container");
@@ -18,20 +18,17 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   container.innerHTML = "";
-
-  // --- Ensure array of roots ---
   const roots = Array.isArray(taxonomyData) ? taxonomyData : [taxonomyData];
-
   const rootUl = document.createElement("ul");
   rootUl.style.listStyleType = "none";
   rootUl.style.paddingLeft = "0";
   container.appendChild(rootUl);
 
   // --- Recursive node creation ---
-  function createNode(node, showChildren = false) {
+  function createNode(node, showChildren = false, parentChecked = false) {
     const li = document.createElement("li");
 
-    // Flex wrapper for arrow + checkbox+label
+    // Flex wrapper for arrow + checkbox + label
     const wrapper = document.createElement("div");
     wrapper.style.display = "flex";
     wrapper.style.alignItems = "center";
@@ -44,8 +41,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       toggle.textContent = showChildren ? "▼" : "►";
       toggle.style.cursor = "pointer";
     } else {
-      toggle.textContent = "►";        // or "▼", doesn't matter
-      toggle.style.visibility = "hidden"; // make invisible
+      toggle.textContent = "►";
+      toggle.style.visibility = "hidden";
     }
     toggle.style.userSelect = "none";
     toggle.style.marginRight = "5px";
@@ -57,9 +54,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     const checkbox = document.createElement("input");
     checkbox.type = "checkbox";
     checkbox.id = `node-${node.name}`;
-    checkbox.dataset.rank = `${node.rank}`;
-    checkbox.dataset.taxa = `${node.name}`;
+    checkbox.dataset.rank = node.rank;
+    checkbox.dataset.taxa = node.name;
     checkbox.classList.add("form-check-input");
+
+    // Inherit parent checked state
+    if (parentChecked) checkbox.checked = true;
 
     const label = document.createElement("label");
     label.htmlFor = checkbox.id;
@@ -69,7 +69,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     checkWrapper.appendChild(checkbox);
     checkWrapper.appendChild(label);
-
     wrapper.appendChild(toggle);
     wrapper.appendChild(checkWrapper);
     li.appendChild(wrapper);
@@ -84,15 +83,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       let loaded = false;
 
-      async function loadChildren() {
+      function loadChildren() {
         if (loaded) return;
         node.children.forEach((child) => {
-          ul.appendChild(createNode(child));
+          ul.appendChild(createNode(child, false, checkbox.checked));
         });
         loaded = true;
       }
 
-      // Show first level if requested
       if (showChildren) {
         loadChildren();
         ul.style.display = "block";
@@ -100,9 +98,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         ul.style.display = "none";
       }
 
-      toggle.addEventListener("click", async () => {
+      toggle.addEventListener("click", () => {
         if (ul.style.display === "none") {
-          await loadChildren();
+          loadChildren();
           ul.style.display = "block";
           toggle.textContent = "▼";
         } else {
@@ -112,23 +110,49 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
     }
 
-    // --- Checkbox cascade ---
+    // --- Downward propagation ---
     checkbox.addEventListener("change", () => {
       if (ul) {
-        requestIdleCallback(() => {
-          ul.querySelectorAll("input[type=checkbox]").forEach(
-            (cb) => (cb.checked = checkbox.checked)
-          );
+        ul.querySelectorAll("input[type=checkbox]").forEach((cb) => {
+          cb.checked = checkbox.checked;
         });
+      }
+      // --- Upward uncheck propagation ---
+      if (!checkbox.checked) {
+        let parentLi = li.parentElement.closest("li");
+        while (parentLi) {
+          const parentCheckbox = parentLi.querySelector("input[type=checkbox]");
+          if (parentCheckbox.checked) parentCheckbox.checked = false;
+          parentLi = parentLi.parentElement.closest("li");
+        }
+      } else {
+        // --- Upward check if all siblings checked ---
+        propagateCheckUp(li);
       }
     });
 
     return li;
   }
 
+  // --- Function to propagate check upwards if all siblings checked ---
+  function propagateCheckUp(li) {
+    const parentLi = li.parentElement.closest("li");
+    if (!parentLi) return;
+    const siblingCheckboxes = Array.from(
+      li.parentElement.querySelectorAll(":scope > li > div > div > input[type=checkbox]")
+    );
+    if (siblingCheckboxes.every(cb => cb.checked)) {
+      const parentCheckbox = parentLi.querySelector("input[type=checkbox]");
+      if (!parentCheckbox.checked) {
+        parentCheckbox.checked = true;
+        propagateCheckUp(parentLi);
+      }
+    }
+  }
+
   // --- Build tree ---
   roots.forEach((node) => {
-    const li = createNode(node, true); // first-level expanded
+    const li = createNode(node, true);
     rootUl.appendChild(li);
   });
 });
