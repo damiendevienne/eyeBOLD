@@ -3,9 +3,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   const countriesContainer = document.getElementById("countries-container");
   const climatesContainer = document.getElementById("climates-container");
 
-  const countriesBlock = countriesContainer.closest(".geo-block");
-  const climatesBlock = climatesContainer.closest(".geo-block");
-
   // --- Load countries dynamically ---
   let countries = [];
   try {
@@ -106,43 +103,95 @@ document.addEventListener("DOMContentLoaded", async () => {
     // --- Continent checkbox behavior ---
     contCheckbox.addEventListener("change", () => {
       ul.querySelectorAll("input.geo-country").forEach(cb => (cb.checked = contCheckbox.checked));
-      updateHighlight();
     });
   }
 
-  // --- Highlight and exclusivity logic ---
-  const updateHighlight = () => {
-    const anyCountryChecked = document.querySelectorAll(".geo-country:checked").length > 0;
-    const anyClimateChecked = document.querySelectorAll(".geo-climate:checked").length > 0;
+  // --- Climate zones ---
+  const climatesBlock = climatesContainer.closest(".geo-block");
 
-    if (anyCountryChecked) {
-      countriesBlock.classList.add("active");
-      climatesBlock.classList.remove("active");
-      climatesBlock.classList.add("disabled-block");
-    } else if (anyClimateChecked) {
-      climatesBlock.classList.add("active");
-      countriesBlock.classList.remove("active");
-      countriesBlock.classList.add("disabled-block");
-    } else {
-      countriesBlock.classList.remove("active", "disabled-block");
-      climatesBlock.classList.remove("active", "disabled-block");
-    }
+  const climateGroups = {
+    "Tropical": ["Af", "Am", "Aw", "As"],
+    "Dry": ["BWh", "BWk", "BSh", "BSk"],
+    "Temperate": ["Cfa", "Cfb", "Cfc", "Csa", "Csb", "Csc", "Cwa", "Cwb", "Cwc"],
+    "Continental": ["Dfa", "Dfb", "Dfc", "Dfd", "Dsa", "Dsb", "Dsc", "Dsd", "Dwa", "Dwb", "Dwc", "Dwd"],
+    "Polar": ["ET", "EF"],
+    "Ocean": ["Ocean"]
   };
 
-  const handleCountryChange = (event) => {
-    if (event.target.checked) {
-      document.querySelectorAll(".geo-climate:checked").forEach(cb => (cb.checked = false));
-    }
-    updateHighlight();
-  };
+  for (const [groupName, climates] of Object.entries(climateGroups)) {
+    const groupDiv = document.createElement("div");
+    groupDiv.classList.add("climate-group");
 
-  const handleClimateChange = (event) => {
-    if (event.target.checked) {
-      document.querySelectorAll(".geo-country:checked").forEach(cb => (cb.checked = false));
-    }
-    updateHighlight();
-  };
+    const toggle = document.createElement("span");
+    toggle.textContent = "►";
+    toggle.style.cursor = "pointer";
+    toggle.style.marginRight = "6px";
+    toggle.style.userSelect = "none";
 
-  countriesContainer.addEventListener("change", handleCountryChange);
-  climatesContainer.addEventListener("change", handleClimateChange);
+    const label = document.createElement("label");
+    label.classList.add("fw-bold");
+    label.textContent = groupName;
+
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.classList.add("form-check-input", "climate-group-checkbox");
+    checkbox.style.marginRight = "6px";
+
+    const titleDiv = document.createElement("div");
+    titleDiv.style.display = "flex";
+    titleDiv.style.alignItems = "center";
+    titleDiv.appendChild(toggle);
+    titleDiv.appendChild(checkbox);
+    titleDiv.appendChild(label);
+
+    groupDiv.appendChild(titleDiv);
+
+    const ul = document.createElement("ul");
+    ul.style.listStyle = "none";
+    ul.style.marginLeft = "1.5em";
+    ul.style.display = "none";
+
+    climates.forEach(climate => {
+      const li = document.createElement("li");
+      li.innerHTML = `
+        <input class="form-check-input geo-climate" type="checkbox" value="${climate}" id="climate-${climate}">
+        <label class="form-check-label" for="climate-${climate}">${climate}</label>
+      `;
+      ul.appendChild(li);
+    });
+
+    groupDiv.appendChild(ul);
+    climatesContainer.appendChild(groupDiv);
+
+    toggle.addEventListener("click", () => {
+      const isHidden = ul.style.display === "none";
+      ul.style.display = isHidden ? "block" : "none";
+      toggle.textContent = isHidden ? "▼" : "►";
+    });
+
+    checkbox.addEventListener("change", () => {
+      ul.querySelectorAll("input.geo-climate").forEach(cb => (cb.checked = checkbox.checked));
+    });
+  }
+
+  // --- Update counters ---
+  const counterSpan = document.getElementById("geography-counter");
+  function updateGeographyCounter() {
+    const selectedCountries = countriesContainer.querySelectorAll("input.geo-country:checked").length;
+    const selectedClimates = climatesContainer.querySelectorAll("input.geo-climate:checked").length;
+
+    let parts = [];
+    if (selectedCountries) parts.push(`${selectedCountries} ${selectedCountries === 1 ? "country" : "countries"}`);
+    if (selectedClimates) parts.push(`${selectedClimates} ${selectedClimates === 1 ? "climate" : "climates"}`);
+
+    counterSpan.textContent = parts.length ? `(${parts.join(", ")} selected)` : ``;
+  }
+
+  document.addEventListener("change", (e) => {
+    if (e.target.closest("#countries-container") || e.target.closest("#climates-container")) {
+      updateGeographyCounter();
+    }
+  });
+
+  updateGeographyCounter();
 });

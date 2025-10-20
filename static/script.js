@@ -1,7 +1,7 @@
 let lastData = []; // store last query for export
 
 async function runQuery() {
-  document.getElementById("status").textContent = "Running query...";
+  document.getElementById("status").textContent = "Running ...";
   const genus = document.getElementById("genus").value;
   const vgenus = document.getElementById("vgenus").checked;
   const dup = document.getElementById("dup").checked;
@@ -61,6 +61,100 @@ function exportJSON() {
   URL.revokeObjectURL(url);
 }
 
-document.getElementById("run").addEventListener("click", runQuery);
-document.getElementById("exportCsv").addEventListener("click", exportCSV);
-document.getElementById("exportJson").addEventListener("click", exportJSON);
+async function runTest() {
+  document.getElementById("status").textContent = "Building query...";
+  const currentState = getCurrentQueryState();
+
+  try {
+    const res = await fetch("/api/build_query", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(currentState)
+    });
+
+    if (!res.ok) throw new Error(`Server error: ${res.status}`);
+    const data = await res.json();
+
+    // Display the generated SQL query in the debug <pre>
+    document.getElementById("debug-query").textContent = data.sql;
+    
+    console.log(data.results);
+
+    // Also display the JSON object sent    
+    document.getElementById("debug-query-json-sent").textContent = JSON.stringify(currentState, null, 2);
+
+    document.getElementById("status").textContent = "Query built successfully";
+  } catch (err) {
+    document.getElementById("debug-query").textContent = `Error: ${err.message}`;
+    document.getElementById("status").textContent = "Error building query";
+  }
+}
+
+
+// async function runTest() {
+//   document.getElementById("status").textContent = "Running query...";
+//   const currentState = getCurrentQueryState();
+//   // Convert object to string for display
+//   document.getElementById("debug-query").textContent = JSON.stringify(currentState, null, 2);
+//   document.getElementById("status").textContent = "Done";
+// }
+
+
+function getCurrentQueryState() {
+  // --- Taxonomy: get name + rank of checked nodes ---
+  const taxonomy = Array.from(document.querySelectorAll("#taxonomy-container input[type=checkbox]:checked"))
+    .map(cb => ({
+      name: cb.dataset.taxa,
+      rank: cb.dataset.rank
+    }));
+
+  // --- Countries ---
+  const countries = Array.from(document.querySelectorAll(".geo-country:checked"))
+    .map(cb => cb.value);
+
+  // --- Climates ---
+  const climates = Array.from(document.querySelectorAll(".geo-climate:checked"))
+    .map(cb => cb.value);
+
+  // --- Sequence options ---
+  const seqRadio = document.querySelector("input[name='seqType']:checked");
+  const seqType = seqRadio ? seqRadio.value : null;
+  const primers = seqType === "primers" ? {
+    forward: document.getElementById("forwardPrimer").value,
+    reverse: document.getElementById("reversePrimer").value
+  } : null;
+
+  // --- Other options ---
+  const options = {
+    excludeDuplicates: document.getElementById("optDuplicates")?.checked || false,
+    hybrids: document.querySelector("input[name='hybrids']:checked")?.value || "all",
+    excludeMisclassified: document.getElementById("optMisclassified")?.checked || false,
+    checkedLocationsOnly: document.getElementById("optCheckedLoc")?.checked || false
+  };
+
+  return {
+    taxonomy,
+    countries,
+    climates,
+    sequence: {
+      type: seqType,
+      primers: primers
+    },
+    options
+  };
+}
+
+
+
+
+document.getElementById("run").addEventListener("click", runTest);
+//document.getElementById("run").addEventListener("click", runQuery);
+
+// document.getElementById("exportCsv").addEventListener("click", exportCSV);
+// document.getElementById("exportJson").addEventListener("click", exportJSON);
+
+
+
+
+// debug.js — displays server-built query live
+// script.js — debug query display
