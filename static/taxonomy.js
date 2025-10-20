@@ -1,4 +1,4 @@
-// taxonomy.js — fixed lazy loading + first level visible
+// taxonomy.js — fixed layout with arrows inline and Bootstrap checkboxes
 
 document.addEventListener("DOMContentLoaded", async () => {
   const container = document.getElementById("taxonomy-container");
@@ -27,41 +27,54 @@ document.addEventListener("DOMContentLoaded", async () => {
   rootUl.style.paddingLeft = "0";
   container.appendChild(rootUl);
 
-  // --- Recursive creation ---
+  // --- Recursive node creation ---
   function createNode(node, showChildren = false) {
     const li = document.createElement("li");
-    li.className = "taxonomy-node";
 
-    const wrapper = document.createElement("span");
+    // Flex wrapper for arrow + checkbox+label
+    const wrapper = document.createElement("div");
     wrapper.style.display = "flex";
     wrapper.style.alignItems = "center";
 
     const hasChildren = node.children && node.children.length > 0;
 
-    // Toggle arrow
+    // Arrow toggle
     const toggle = document.createElement("span");
-    toggle.textContent = hasChildren ? (showChildren ? "▼" : "►") : "";
-    toggle.style.cursor = hasChildren ? "pointer" : "default";
+    if (hasChildren) {
+      toggle.textContent = showChildren ? "▼" : "►";
+      toggle.style.cursor = "pointer";
+    } else {
+      toggle.textContent = "►";        // or "▼", doesn't matter
+      toggle.style.visibility = "hidden"; // make invisible
+    }
     toggle.style.userSelect = "none";
     toggle.style.marginRight = "5px";
 
-    // Checkbox
+    // Checkbox + label
+    const checkWrapper = document.createElement("div");
+    checkWrapper.classList.add("form-check", "d-flex", "align-items-center");
+
     const checkbox = document.createElement("input");
     checkbox.type = "checkbox";
     checkbox.id = `node-${node.name}`;
+    checkbox.dataset.rank = `${node.rank}`;
+    checkbox.dataset.taxa = `${node.name}`;
+    checkbox.classList.add("form-check-input");
 
-    // Label
     const label = document.createElement("label");
     label.htmlFor = checkbox.id;
     label.textContent = `${node.name}${node.rank ? " (" + node.rank + ")" : ""}`;
+    label.classList.add("form-check-label");
     label.style.marginLeft = "5px";
 
+    checkWrapper.appendChild(checkbox);
+    checkWrapper.appendChild(label);
+
     wrapper.appendChild(toggle);
-    wrapper.appendChild(checkbox);
-    wrapper.appendChild(label);
+    wrapper.appendChild(checkWrapper);
     li.appendChild(wrapper);
 
-    // Container for potential children
+    // --- Children container ---
     let ul = null;
     if (hasChildren) {
       ul = document.createElement("ul");
@@ -79,7 +92,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         loaded = true;
       }
 
-      // If we want this node's children visible from start (root)
+      // Show first level if requested
       if (showChildren) {
         loadChildren();
         ul.style.display = "block";
@@ -87,7 +100,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         ul.style.display = "none";
       }
 
-      // Toggle click
       toggle.addEventListener("click", async () => {
         if (ul.style.display === "none") {
           await loadChildren();
@@ -100,7 +112,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
     }
 
-    // Checkbox cascade
+    // --- Checkbox cascade ---
     checkbox.addEventListener("change", () => {
       if (ul) {
         requestIdleCallback(() => {
@@ -114,9 +126,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     return li;
   }
 
-  // --- Build the tree: root visible, first level open ---
+  // --- Build tree ---
   roots.forEach((node) => {
-    const li = createNode(node, true);
+    const li = createNode(node, true); // first-level expanded
     rootUl.appendChild(li);
   });
 });

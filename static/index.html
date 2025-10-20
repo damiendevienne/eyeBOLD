@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <title>eyeBOLD GUI</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"> -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.0/dist/sandstone/bootstrap.min.css">
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
@@ -13,82 +14,218 @@
   <!-- Header / Navbar -->
   <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm mb-4">
     <div class="container">
-      <a class="navbar-brand fw-bold fs-4" href="#">eyeBOLD</a>
+      <!-- <a class="navbar-brand fw-bold fs-4" href="#">eyeBOLD</a> -->
+      <a class="navbar-brand fw-bold fs-4" href="#">
+        <span style="color: black;">eye</span><span style="color: #ee9127;">BOLD</span>
+      </a>
       <div class="d-flex gap-3">
-        <a class="nav-link" href="https://github.com/yourrepo" target="_blank">Code on GitHub</a>
-        <a class="nav-link" href="#" target="_blank">Citation</a>
-        <a class="nav-link" href="#" target="_blank">License</a>
+        <a class="nav-link" href="https://github.com/damiendevienne/eyeBOLD/" target="_blank">Code on GitHub</a>
+        <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#citationModal">Citation</a>
+        <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#licenseModal">License</a>
       </div>
     </div>
   </nav>
 
   <div class="container p-4">
     <h2 class="mb-4">eyeBOLD Query Interface</h2>
-
+    <div>
+      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+    </div>
     <!-- TAXONOMY-->
     <div class="card mb-3">
       <div class="card-header fw-bold">
-        Taxonomy
+        Taxonomy <span>counter</span>
       </div>
       <div class="card-body">
         <div id="taxonomy-container"></div>
       </div>
     </div>
-<!-- GEOGRAPHY -->
-<div class="card mb-3">
-  <div class="card-header fw-bold">
-    Geography
-  </div>
-  <div class="card-body">
-    <div class="row g-3">
 
-      <!-- Countries block -->
-      <div class="col-md-6">
-        <div id="countries-block" class="p-3 border rounded geo-block" style="overflow-y: auto;">
-          <h6>Countries</h6>
-          <div id="countries-container"></div>
-        </div>
+    <!-- GEOGRAPHY -->
+    <div class="card mb-3">  
+      <div class="card-header fw-bold">
+        Geography
       </div>
+      <div class="card-body">
+        <div class="row g-3">
+          <!-- Countries block -->
+          <div class="col-md-6">
+            <div id="countries-block" class="p-3 border rounded geo-block" style="overflow-y: auto;">
+              <h6>Countries</h6>
+              <div id="countries-container"></div>
+            </div>
+          </div>
 
-      <!-- Climates block -->
-      <div class="col-md-6">
-        <div id="climates-block" class="p-3 border rounded geo-block" style="max-height: 300px; overflow-y: auto;">
-          <h6>Köppen Climates</h6>
-          <div id="climates-container">
-            <div class="form-check">
-              <input class="form-check-input geo-climate" type="checkbox" value="Af" id="climate-Af">
-              <label class="form-check-label" for="climate-Af">Tropical rainforest (Af)</label>
+          <!-- Climates block -->
+          <div class="col-md-6">
+            <div id="climates-block" class="p-3 border rounded geo-block" style="max-height: 300px; overflow-y: auto;">
+              <h6>Köppen Climates</h6>
+              <div id="climates-container">
+                <div class="form-check">
+                  <input class="form-check-input geo-climate" type="checkbox" value="Af" id="climate-Af">
+                  <label class="form-check-label" for="climate-Af">Tropical rainforest (Af)</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input geo-climate" type="checkbox" value="Am" id="climate-Am">
+                  <label class="form-check-label" for="climate-Am">Tropical monsoon (Am)</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input geo-climate" type="checkbox" value="Aw" id="climate-Aw">
+                  <label class="form-check-label" for="climate-Aw">Tropical savanna (Aw)</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input geo-climate" type="checkbox" value="BWh" id="climate-BWh">
+                  <label class="form-check-label" for="climate-BWh">Hot desert (BWh)</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input geo-climate" type="checkbox" value="Cfa" id="climate-Cfa">
+                  <label class="form-check-label" for="climate-Cfa">Humid subtropical (Cfa)</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input geo-climate" type="checkbox" value="Cfb" id="climate-Cfb">
+                  <label class="form-check-label" for="climate-Cfb">Oceanic (Cfb)</label>
+                </div>
+              </div>
             </div>
-            <div class="form-check">
-              <input class="form-check-input geo-climate" type="checkbox" value="Am" id="climate-Am">
-              <label class="form-check-label" for="climate-Am">Tropical monsoon (Am)</label>
+          </div>
+        </div> <!-- row -->
+      </div> <!-- card-body -->
+    </div> <!-- card -->
+
+    <!-- OPTIONS -->
+    <div class="card mb-3">
+      <div class="card-header fw-bold">Options</div>
+      <div class="card-body">
+        <div class="row">
+          
+          <!-- LEFT BLOCK: SEQUENCE OPTIONS -->
+          <div class="col-md-6">
+            <h6 class="fw-bold mb-3 text-primary">Sequence options</h6>
+
+            <!-- Sequence type -->
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Sequence type:</label>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="seqType" id="seqRaw" value="raw" checked>
+                <label class="form-check-label" for="seqRaw">Raw</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="seqType" id="seqSanitized" value="sanitized">
+                <label class="form-check-label" for="seqSanitized">Sanitized</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="seqType" id="seqPrimers" value="primers">
+                <label class="form-check-label" for="seqPrimers">Between COI primers</label>
+              </div>
             </div>
-            <div class="form-check">
-              <input class="form-check-input geo-climate" type="checkbox" value="Aw" id="climate-Aw">
-              <label class="form-check-label" for="climate-Aw">Tropical savanna (Aw)</label>
+
+            <!-- Primer selection -->
+            <div id="primerSelectors" class="row g-2 align-items-center" style="opacity: 0.5;">
+              <div class="col-auto">
+                <label for="forwardPrimer" class="form-label mb-0">Forward primer:</label>
+              </div>
+              <div class="col">
+                <select class="form-select form-select-sm" id="forwardPrimer" disabled>
+                  <option value="F1" selected>F1</option>
+                  <option value="F2">F2</option>
+                </select>
+              </div>
+              <div class="col-auto">
+                <label for="reversePrimer" class="form-label mb-0">Reverse primer:</label>
+              </div>
+              <div class="col">
+                <select class="form-select form-select-sm" id="reversePrimer" disabled>
+                  <option value="R1" selected>R1</option>
+                  <option value="R2">R2</option>
+                </select>
+              </div>
             </div>
-            <div class="form-check">
-              <input class="form-check-input geo-climate" type="checkbox" value="BWh" id="climate-BWh">
-              <label class="form-check-label" for="climate-BWh">Hot desert (BWh)</label>
+          </div>
+
+          <!-- RIGHT BLOCK: OTHER FILTERS -->
+          <div class="col-md-6">
+            <h6 class="fw-bold mb-3 text-primary">Other options</h6>
+
+            <!-- Simple checkbox -->
+            <div class="form-check mb-2">
+              <input class="form-check-input" type="checkbox" id="optDuplicates" checked>
+              <label class="form-check-label" for="optDuplicates">Exclude duplicates</label>
             </div>
-            <div class="form-check">
-              <input class="form-check-input geo-climate" type="checkbox" value="Cfa" id="climate-Cfa">
-              <label class="form-check-label" for="climate-Cfa">Humid subtropical (Cfa)</label>
+
+            <!-- Radio button example (hybrids) -->
+            <div class="mb-3">
+              <label class="form-label fw-semibold d-block mb-1">Hybrids:</label>
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="hybrids" id="hybAll" value="all">
+                <label class="form-check-label" for="hybAll">All</label>
+              </div>
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="hybrids" id="hybOnly" value="hybrid">
+                <label class="form-check-label" for="hybOnly">Hybrid</label>
+              </div>
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="hybrids" id="hybNone" value="nohybrid" checked>
+                <label class="form-check-label" for="hybNone">Not hybrid</label>
+              </div>
             </div>
-            <div class="form-check">
-              <input class="form-check-input geo-climate" type="checkbox" value="Cfb" id="climate-Cfb">
-              <label class="form-check-label" for="climate-Cfb">Oceanic (Cfb)</label>
+
+            <!-- Other checkboxes -->
+            <div class="form-check mb-2">
+              <input class="form-check-input" type="checkbox" id="optMisclassified" checked>
+              <label class="form-check-label" for="optMisclassified">Exclude misclassified</label>
+            </div>
+
+            <div class="form-check mb-2">
+              <input class="form-check-input" type="checkbox" id="optCheckedLoc" checked>
+              <label class="form-check-label" for="optCheckedLoc">Checked locations only</label>
             </div>
           </div>
         </div>
       </div>
+    </div>
 
-    </div> <!-- row -->
-  </div> <!-- card-body -->
-</div> <!-- card -->
-
-
-
+    <div class="card mb-3 border-secondary shadow-sm">
+      <div class="card-header fw-bold text-white bg-secondary">
+        QUERY
+      </div>
+      <div class="card-body">
+        <!-- Output format -->
+        <div class="mb-3">
+          <label class="form-label fw-bold">Output format:</label>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="outputFormat" id="outFASTA" value="fasta" checked>
+            <label class="form-check-label" for="outFASTA">FASTA</label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="outputFormat" id="outTSV" value="tsv">
+            <label class="form-check-label" for="outTSV">TSV</label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="outputFormat" id="outJSON" value="json">
+            <label class="form-check-label" for="outJSON">JSON</label>
+          </div>
+        </div>
+    
+        <!-- Run query button -->
+        <button id="run" class="btn btn-primary">Run Query</button>
+      </div>
+    </div>
+    <!-- DEBUG PANEL -->
+      <div class="card-body">
+      <div id="debug-panel" class="container my-3">
+        <div class="card border-warning">
+          <div class="card-header bg-warning text-dark fw-bold">
+            Debug – Current Query Preview
+            <div id="status" class="text-muted mb-2"></div>
+          </div>
+          <div class="card-body">
+            <pre id="debug-query" class="text-muted mb-0" style="white-space: pre-wrap; font-size: 0.9em;">
+              No query built yet.
+            </pre>
+          </div>
+        </div>
+      </div>
+<!-- 
     <div class="card mb-3">
       <div class="row g-2 align-items-center">
         <div class="col-auto">
@@ -110,14 +247,15 @@
           <button id="run" class="btn btn-primary">Run query</button>
         </div>
       </div>
-    </div>
+    </div> -->
 
-    <div id="status" class="text-muted mb-2"></div>
+    <!-- <div id="status" class="text-muted mb-2"></div>
 
     <div class="mb-3">
       <button id="exportCsv" class="btn btn-secondary btn-sm">Export CSV</button>
       <button id="exportJson" class="btn btn-secondary btn-sm">Export JSON</button>
     </div>
+    
 
     <div class="table-responsive">
       <table class="table table-striped table-bordered" id="results">
@@ -133,11 +271,56 @@
         <tbody></tbody>
       </table>
     </div>
+  </div> -->
+
+  <!-- Citation Modal -->
+  <div class="modal fade" id="citationModal" tabindex="-1" aria-labelledby="citationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-light">
+          <h5 class="modal-title" id="citationModalLabel">Citation</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p>If you use the eyeBOLD database for your publications, please cite: Please cite eyeBOLD as:</p>
+          <pre>Author(s), Year. eyeBOLD: A databse for ... Journal/Repository info.</pre>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
   </div>
+
+  <!-- License Modal -->
+  <div class="modal fade" id="licenseModal" tabindex="-1" aria-labelledby="licenseModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-light text-dark">
+          <h5 class="modal-title" id="licenseModalLabel">License</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p>eyeBOLD is released under the MIT License.</p>
+          <pre>
+            Permission is hereby granted, free of charge, to any person obtaining a copy
+            of this software and associated documentation files (the "Software"), to deal
+            in the Software without restriction...
+          </pre>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 
   <script src="script.js"></script>
   <script src="taxonomy.js"></script>
   <script src="geography.js"></script>
+  <script src="options.js"></script>
+
 
 </body>
 </html>

@@ -11,3 +11,4 @@ To run the server simply type
 - [ ] write clean code toextract countries from db and format it into a json
 - [ ] idem for climatic zones
 - [ ] Add continent info somewhere to help organize countries better
+- [ ] Add search bar for taxo

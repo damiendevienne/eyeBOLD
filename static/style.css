@@ -1,6 +1,6 @@
-body { 
+/* body { 
   font-family: system-ui, sans-serif; 
-}
+} */
 
 table { 
   font-size: 0.9rem; 
@@ -38,4 +38,8 @@ table {
 .geo-block.active {
   background-color: #e9f0fa;
   border: 1px solid #21588f;
+}
+
+.bg-light {
+  background-color: rgb(238 145 39 / 6%) !important;
 }
