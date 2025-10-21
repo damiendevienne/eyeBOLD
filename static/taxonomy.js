@@ -1,6 +1,21 @@
 // taxonomy.js — fixed layout with arrows inline, Bootstrap checkboxes, sorted children
 
 document.addEventListener("DOMContentLoaded", async () => {
+  // --- Rank selector ---
+  let selectedRank = "species"; // default
+  const rankButtons = document.querySelectorAll("#rank-selector button");
+  console.log("Rank buttons:", rankButtons);
+  rankButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      rankButtons.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      selectedRank = btn.dataset.rank;
+      console.log("Selected rank:", selectedRank);
+      // Optional: trigger refresh or store it for query payload
+    });
+  });
+
+
   const container = document.getElementById("taxonomy-container");
   container.innerHTML = "<p class='text-muted'>Loading taxonomy...</p>";
 
@@ -125,22 +140,45 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     }
 
-    // --- Propagate up ---
+    // --- Propagate up OLD---
+    // function propagateUp(cb) {
+    //   const li = cb.closest("li");
+    //   const parentUl = li.parentElement;
+    //   const parentLi = parentUl.closest("li");
+    //   if (!parentLi) return;
+
+    //   const parentCheckbox = parentLi.querySelector("input[type=checkbox]");
+
+    //   const siblingCheckboxes = Array.from(
+    //     parentUl.querySelectorAll(":scope > li > div > div > input[type=checkbox]")
+    //   );
+    //   parentCheckbox.checked = siblingCheckboxes.every((s) => s.checked);
+
+    //   propagateUp(parentCheckbox);
+    // }
+
+    // --- Propagate up NEW---
     function propagateUp(cb) {
       const li = cb.closest("li");
       const parentUl = li.parentElement;
       const parentLi = parentUl.closest("li");
       if (!parentLi) return;
-
+      console.log("Propagating up from");
       const parentCheckbox = parentLi.querySelector("input[type=checkbox]");
-
+    
       const siblingCheckboxes = Array.from(
         parentUl.querySelectorAll(":scope > li > div > div > input[type=checkbox]")
       );
-      parentCheckbox.checked = siblingCheckboxes.every((s) => s.checked);
-
+    
+      const allChecked = siblingCheckboxes.every(s => s.checked);
+      const noneChecked = siblingCheckboxes.every(s => !s.checked && !s.indeterminate);
+    
+      parentCheckbox.checked = allChecked;
+      parentCheckbox.indeterminate = !allChecked && !noneChecked;
+    
       propagateUp(parentCheckbox);
     }
+    
 
     // --- Checkbox change handler ---
     checkbox.addEventListener("change", () => {

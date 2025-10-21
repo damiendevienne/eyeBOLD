@@ -101,12 +101,28 @@ async function runTest() {
 
 
 function getCurrentQueryState() {
-  // --- Taxonomy: get name + rank of checked nodes ---
-  const taxonomy = Array.from(document.querySelectorAll("#taxonomy-container input[type=checkbox]:checked"))
-    .map(cb => ({
-      name: cb.dataset.taxa,
-      rank: cb.dataset.rank
-    }));
+
+// --- Taxonomy: get name + rank of checked nodes ---
+const taxonomy = Array.from(document.querySelectorAll("#taxonomy-container input[type=checkbox]:checked"))
+  .filter(cb => {
+    // Keep this checkbox only if no ancestor checkbox is checked
+    let parentLi = cb.closest("li")?.parentElement?.closest("li");
+    while (parentLi) {
+      const parentCb = parentLi.querySelector("input[type=checkbox]");
+      if (parentCb?.checked) return false; // parent is checked → skip this node
+      parentLi = parentLi.parentElement?.closest("li");
+    }
+    return true; // keep this one
+  })
+  .map(cb => ({
+    name: cb.dataset.taxa,
+    rank: cb.dataset.rank
+  }));
+
+  // --- Max rank selected ---
+  const rankBtn = document.querySelector("#rank-selector button.active");
+  const identification_rank = rankBtn?.dataset.rank || null;
+
 
   // --- Countries ---
   const countries = Array.from(document.querySelectorAll(".geo-country:checked"))
@@ -134,6 +150,7 @@ function getCurrentQueryState() {
 
   return {
     taxonomy,
+    identification_rank,
     countries,
     climates,
     sequence: {

@@ -31,11 +31,26 @@
     <div>
       <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
     </div>
-    <!-- TAXONOMY-->
+    <!-- TAXONOMY -->
     <div class="card mb-3">
-      <div class="card-header fw-bold">
-        Taxonomy <span>counter</span>
+      <div class="card-header fw-bold d-flex align-items-center justify-content-between">
+        <span>
+          Taxonomy
+          <span id="taxonomy-counter" class="text-muted" style="font-size: small;">todo</span>
+        </span>
+        <div class="d-flex align-items-center">
+          <label class="form-label fw-semibold mb-0 me-2 small">Max rank retrieved:</label>
+          <div id="rank-selector" class="btn-group btn-group-sm" role="group" aria-label="Rank selector">
+            <button type="button" class="btn btn-outline-dark btn-sm" data-rank="phylum">Phylum</button>
+            <button type="button" class="btn btn-outline-dark btn-sm" data-rank="class">Class</button>
+            <button type="button" class="btn btn-outline-dark btn-sm" data-rank="order">Order</button>
+            <button type="button" class="btn btn-outline-dark btn-sm" data-rank="family">Family</button>
+            <button type="button" class="btn btn-outline-dark btn-sm" data-rank="genus">Genus</button>
+            <button type="button" class="btn btn-outline-dark btn-sm active" data-rank="species">Species</button>
+          </div>
+        </div>
       </div>
+
       <div class="card-body">
         <div id="taxonomy-container"></div>
       </div>
@@ -51,7 +66,7 @@
           <!-- Countries block -->
           <div class="col-md-6">
             <div id="countries-block" class="p-3 border rounded geo-block" style="overflow-y: auto;">
-              <h6>Countries</h6>
+              <h6 class="fw-bold mb-3 text-primary">Countries</h6>
               <div id="countries-container"></div>
             </div>
           </div>
@@ -59,7 +74,7 @@
           <!-- Climates block -->
           <div class="col-md-6">
             <div id="climates-block" class="p-3 border rounded geo-block" style="max-height: 300px; overflow-y: auto;">
-              <h6>Köppen Climates</h6>
+              <h6 class="fw-bold mb-3 text-primary">Köppen Climates</h6>
               <div id="climates-container">
               </div>
             </div>
