@@ -11,4 +11,20 @@ document.addEventListener("DOMContentLoaded", () => {
       primerSelectors.style.opacity = isPrimerMode ? "1" : "0.5";
     });
   });
+
+
+
+  // --- Hybrid filter button group ---
+  const hybridButtons = document.querySelectorAll("#hybrid-selector button");
+
+  hybridButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      // Remove active state from all buttons
+      hybridButtons.forEach(b => b.classList.remove("active"));
+      // Set active state on the clicked one
+      btn.classList.add("active");
+    });
+  });
+
+
 });

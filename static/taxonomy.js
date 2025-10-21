@@ -4,7 +4,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   // --- Rank selector ---
   let selectedRank = "species"; // default
   const rankButtons = document.querySelectorAll("#rank-selector button");
-  console.log("Rank buttons:", rankButtons);
   rankButtons.forEach(btn => {
     btn.addEventListener("click", () => {
       rankButtons.forEach(b => b.classList.remove("active"));
@@ -19,6 +18,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const container = document.getElementById("taxonomy-container");
   container.innerHTML = "<p class='text-muted'>Loading taxonomy...</p>";
 
+
   let taxonomyData = null;
 
   // --- Load taxonomy data ---
@@ -32,9 +32,72 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
+
   container.innerHTML = "";
 
   const roots = Array.isArray(taxonomyData) ? taxonomyData : [taxonomyData];
+
+  ////////////////////////////////////////////////////////////
+  // --- SEARCH ---
+  ////////////////////////////////////////////////////////////
+
+  // --- Flatten taxonomy for search ---
+  const flatTaxa = []; // array of { name, rank, node, path }
+
+  function flatten(node, path = []) {
+    const currentPath = [...path, node]; // keep path to root
+    flatTaxa.push({
+      name: node.name,
+      rank: node.rank,
+      node: node,
+      path: currentPath // store path for later DOM creation
+    });
+    if (node.children) {
+      node.children.forEach(child => flatten(child, currentPath));
+    }
+  }
+
+  roots.forEach(root => flatten(root));
+  console.log("Flat taxa ready:", flatTaxa.length, "entries");
+
+  // --- For search bar ---
+  const searchInput = document.getElementById("taxonomy-search");
+  const suggestionsContainer = document.getElementById("taxonomy-suggestions"); 
+
+  searchInput.addEventListener("input", () => {
+    const query = searchInput.value.trim().toLowerCase();
+    suggestionsContainer.innerHTML = ""; // clear previous suggestions
+  
+    if (!query) return; // no input → no suggestions
+  
+    // Filter taxa matching the query
+    const matches = flatTaxa.filter(t => t.name.toLowerCase().includes(query)).slice(0, 10); // limit 10
+  
+    matches.forEach(t => {
+      const div = document.createElement("div");
+      div.textContent = `${t.name} (${t.rank})`;
+      div.className = "list-group-item list-group-item-action";
+      div.style.cursor = "pointer";
+  
+      // Click handler will be Step 3
+      div.addEventListener("click", () => {
+        console.log("Clicked taxon:", t.name, t.rank);
+        // Step 3 will expand the tree up to this taxon
+        expandToTaxon(t);
+        });
+  
+      suggestionsContainer.appendChild(div);
+    });
+
+  });
+  ////////////////////////////////////////////////////////////
+  // --- END OF SEARCH ---
+  ////////////////////////////////////////////////////////////
+
+
+
+
+
 
   const rootUl = document.createElement("ul");
   rootUl.style.listStyleType = "none";
@@ -189,9 +252,68 @@ document.addEventListener("DOMContentLoaded", async () => {
     return li;
   }
 
+
+  // --- Step 3: Expand tree to a clicked taxon ---
+  function expandToTaxon(taxon) {
+    let currentNodes = roots;
+    let parentUl = rootUl;
+    let finalLi = null; // store the final LI here
+  
+    taxon.path.forEach((name, levelIndex) => {
+      console.log("At level", levelIndex, "looking for", name.name);
+      const node = currentNodes.find(n => n.name === name.name);
+      if (!node) return;
+  
+      // Find the LI element if already created
+      let li = parentUl.querySelector(`li > div > div > input[data-taxa="${node.name}"]`)?.closest("li");
+  
+      // If not yet created, create it (lazy loading)
+      if (!li) {
+        li = createNode(node, false);
+        parentUl.appendChild(li);
+      }
+  
+      // Update finalLi when we reach the target
+      if (levelIndex === taxon.path.length - 1) {
+        finalLi = li;
+      }
+  
+      // Show this LI's UL children
+      const ul = li.querySelector("ul");
+      if (ul) ul.style.display = "block";
+  
+      // Go deeper
+      parentUl = ul;
+      currentNodes = node.children || [];
+    });
+  
+    // Highlight the final LI
+    if (finalLi) {
+      const innerDiv = finalLi.querySelector(":scope > div > div"); // inner div
+      // Optional: ensure initial background
+      innerDiv.classList.add("tax-inner", "tax-highlight");
+
+      void innerDiv.offsetWidth;
+
+      // Remove the class after a short delay to trigger fade-out
+      setTimeout(() => {
+        innerDiv.classList.remove("tax-highlight");
+      }, 500); // small delay ensures transition applies
+    }
+        // Hide suggestions0
+    suggestionsContainer.innerHTML = "";
+  }
+  
+
+
   // --- Build tree ---
   roots.forEach((node) => {
     const li = createNode(node, true);
     rootUl.appendChild(li);
   });
+
+
+
+
+
 });

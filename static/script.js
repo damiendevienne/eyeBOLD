@@ -143,7 +143,10 @@ const taxonomy = Array.from(document.querySelectorAll("#taxonomy-container input
   // --- Other options ---
   const options = {
     excludeDuplicates: document.getElementById("optDuplicates")?.checked || false,
-    hybrids: document.querySelector("input[name='hybrids']:checked")?.value || "all",
+    excludeShortLengths: document.getElementById("optLength")?.checked || false,
+    hybrids: document
+      .querySelector("#hybrid-selector button.active")
+      ?.dataset.hybrid || "all",
     excludeMisclassified: document.getElementById("optMisclassified")?.checked || false,
     checkedLocationsOnly: document.getElementById("optCheckedLoc")?.checked || false
   };

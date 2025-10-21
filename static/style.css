@@ -40,11 +40,17 @@ table {
   border: 1px solid #21588f;
 }
 
+
+
+/* ========================================================================== */
+/* ========================= Bootstrap Element Styling ======================= */
+/* ========================================================================== */
+
 .bg-light {
   background-color: rgb(238 145 39 / 6%) !important;
 }
 
-#rank-selector .btn {
+/* #rank-selector .btn {
   color: #333;
   border-color: #ccc;
   background-color: #f9f9f9;
@@ -60,12 +66,37 @@ table {
   background-color: #ee9127;
   color: #fff;
   border-color: #ee9127;
+} */
+
+.text-primary {
+  --bs-text-opacity: 1;
+  color: rgb(183 112 32) !important;
 }
+
+.btn {
+  color: #333;
+  border-color: #ccc;
+  background-color: #f9f9f9;
+  font-size: 0.8rem;
+  padding: 2px 6px;
+}
+
+.btn:hover {
+  background-color: #e9e9e9;
+  color:#333;
+}
+
+.btn.active {
+  background-color: #ee9127;
+  color: #fff;
+  border-color: #ee9127;
+}
+
 
 /* Hide default indeterminate style */
 input[type="checkbox"].form-check-input:indeterminate {
   background-color: white;  /* keep box white */
-  border: 1px solid #21588f; /* keep border */
+  border: 1px solid #ee9127; /* keep border */
   position: relative;
 }
 
@@ -74,10 +105,22 @@ input[type="checkbox"].form-check-input:indeterminate::after {
   content: '';
   width: 4px;
   height: 4px;
-  background-color: #21588f; /* blue dot */
+  background-color: #ee9127; /* blue dot */
   border-radius: 50%;
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+}
+.tax-inner {
+  transition: color 1.5s ease;
+}
+
+.tax-inner.tax-highlight {
+  color: #ee9127; /* highlight color */
+}
+
+.form-check-input:checked {
+  background-color: #ee9127;
+  border-color: #c3761e;
 }
