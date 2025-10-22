@@ -106,14 +106,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   function createNode(node, showChildren = false) {
     const li = document.createElement("li");
-
+  
     // Flex wrapper for arrow + checkbox+label
     const wrapper = document.createElement("div");
     wrapper.style.display = "flex";
     wrapper.style.alignItems = "center";
-
+  
     const hasChildren = node.children && node.children.length > 0;
-
+  
     // Arrow toggle
     const toggle = document.createElement("span");
     if (hasChildren) {
@@ -125,30 +125,30 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
     toggle.style.userSelect = "none";
     toggle.style.marginRight = "5px";
-
+  
     // Checkbox + label
     const checkWrapper = document.createElement("div");
     checkWrapper.classList.add("form-check", "d-flex", "align-items-center");
-
+  
     const checkbox = document.createElement("input");
     checkbox.type = "checkbox";
     checkbox.id = `node-${node.name}`;
     checkbox.dataset.rank = `${node.rank}`;
     checkbox.dataset.taxa = `${node.name}`;
     checkbox.classList.add("form-check-input");
-
+  
     const label = document.createElement("label");
     label.htmlFor = checkbox.id;
     label.textContent = `${node.name}${node.rank ? " (" + node.rank + ")" : ""}`;
     label.classList.add("form-check-label");
     label.style.marginLeft = "5px";
-
+  
     checkWrapper.appendChild(checkbox);
     checkWrapper.appendChild(label);
     wrapper.appendChild(toggle);
     wrapper.appendChild(checkWrapper);
     li.appendChild(wrapper);
-
+  
     // --- Children container ---
     let ul = null;
     if (hasChildren) {
@@ -156,21 +156,18 @@ document.addEventListener("DOMContentLoaded", async () => {
       ul.style.listStyleType = "none";
       ul.style.marginLeft = "20px";
       li.appendChild(ul);
-
-      let loaded = false;
-
+  
+      // Use data attribute to mark if children are loaded
+      li.dataset.loaded = "false";
+  
       async function loadChildren() {
-        if (loaded) return;
-
-        // Sort children alphabetically by name
+        if (li.dataset.loaded === "true") return;  // <-- prevent duplicate creation
+  
         node.children.sort((a, b) => a.name.localeCompare(b.name));
-
-        node.children.forEach((child) => {
-          ul.appendChild(createNode(child));
-        });
-        loaded = true;
+        node.children.forEach(child => ul.appendChild(createNode(child)));
+        li.dataset.loaded = "true";  // mark as loaded
       }
-
+  
       // Show first level if requested
       if (showChildren) {
         loadChildren();
@@ -178,16 +175,16 @@ document.addEventListener("DOMContentLoaded", async () => {
       } else {
         ul.style.display = "none";
       }
-
+  
       toggle.addEventListener("click", async () => {
         if (ul.style.display === "none") {
           await loadChildren();
           ul.style.display = "block";
           toggle.textContent = "▼";
-
+  
           // If parent checkbox is checked, check all newly loaded children
           if (checkbox.checked) {
-            ul.querySelectorAll("input[type=checkbox]").forEach((cb) => (cb.checked = true));
+            ul.querySelectorAll("input[type=checkbox]").forEach(cb => (cb.checked = true));
           }
         } else {
           ul.style.display = "none";
@@ -195,116 +192,97 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
       });
     }
-
+  
     // --- Propagate down ---
     function propagateDown(checked) {
       if (ul) {
-        ul.querySelectorAll("input[type=checkbox]").forEach((cb) => (cb.checked = checked));
+        ul.querySelectorAll("input[type=checkbox]").forEach(cb => (cb.checked = checked));
       }
     }
-
-    // --- Propagate up OLD---
-    // function propagateUp(cb) {
-    //   const li = cb.closest("li");
-    //   const parentUl = li.parentElement;
-    //   const parentLi = parentUl.closest("li");
-    //   if (!parentLi) return;
-
-    //   const parentCheckbox = parentLi.querySelector("input[type=checkbox]");
-
-    //   const siblingCheckboxes = Array.from(
-    //     parentUl.querySelectorAll(":scope > li > div > div > input[type=checkbox]")
-    //   );
-    //   parentCheckbox.checked = siblingCheckboxes.every((s) => s.checked);
-
-    //   propagateUp(parentCheckbox);
-    // }
-
-    // --- Propagate up NEW---
+  
+    // --- Propagate up ---
     function propagateUp(cb) {
       const li = cb.closest("li");
       const parentUl = li.parentElement;
       const parentLi = parentUl.closest("li");
       if (!parentLi) return;
-      console.log("Propagating up from");
       const parentCheckbox = parentLi.querySelector("input[type=checkbox]");
-    
+  
       const siblingCheckboxes = Array.from(
         parentUl.querySelectorAll(":scope > li > div > div > input[type=checkbox]")
       );
-    
+  
       const allChecked = siblingCheckboxes.every(s => s.checked);
       const noneChecked = siblingCheckboxes.every(s => !s.checked && !s.indeterminate);
-    
+  
       parentCheckbox.checked = allChecked;
       parentCheckbox.indeterminate = !allChecked && !noneChecked;
-    
+  
       propagateUp(parentCheckbox);
     }
-    
-
+  
     // --- Checkbox change handler ---
     checkbox.addEventListener("change", () => {
       propagateDown(checkbox.checked);
       propagateUp(checkbox);
     });
-
+  
     return li;
   }
+  
 
-
-  // --- Step 3: Expand tree to a clicked taxon ---
-  function expandToTaxon(taxon) {
+  async function expandToTaxon(taxon) {
     let currentNodes = roots;
     let parentUl = rootUl;
-    let finalLi = null; // store the final LI here
+    let finalLi = null;
+    console.log("Expanding:", taxon.name, taxon.rank);
   
-    taxon.path.forEach((name, levelIndex) => {
-      console.log("At level", levelIndex, "looking for", name.name);
-      const node = currentNodes.find(n => n.name === name.name);
+    for (let levelIndex = 0; levelIndex < taxon.path.length; levelIndex++) {
+      const nodeObj = taxon.path[levelIndex];
+      const node = currentNodes.find(n => n.name === nodeObj.name);
       if (!node) return;
   
-      // Find the LI element if already created
+      // Find LI if already exists
       let li = parentUl.querySelector(`li > div > div > input[data-taxa="${node.name}"]`)?.closest("li");
   
-      // If not yet created, create it (lazy loading)
+      // Create node if not already created
       if (!li) {
         li = createNode(node, false);
         parentUl.appendChild(li);
       }
   
-      // Update finalLi when we reach the target
-      if (levelIndex === taxon.path.length - 1) {
-        finalLi = li;
+      // Update finalLi for highlighting
+      if (levelIndex === taxon.path.length - 1) finalLi = li;
+  
+      // If this node has children, ensure its UL is visible
+      const ul = li.querySelector("ul");
+      if (ul && ul.style.display === "none" && levelIndex < taxon.path.length - 1) {
+        const toggle = li.querySelector("span"); // the arrow
+        toggle.click(); // simulate click to expand (this will call loadChildren inside createNode)
       }
   
-      // Show this LI's UL children
-      const ul = li.querySelector("ul");
-      if (ul) ul.style.display = "block";
-  
-      // Go deeper
-      parentUl = ul;
+      // Move to next level
+      parentUl = li.querySelector("ul");
       currentNodes = node.children || [];
-    });
+    }
   
     // Highlight the final LI
     if (finalLi) {
-      const innerDiv = finalLi.querySelector(":scope > div > div"); // inner div
-      // Optional: ensure initial background
+      const innerDiv = finalLi.querySelector(":scope > div > div");
       innerDiv.classList.add("tax-inner", "tax-highlight");
+      void innerDiv.offsetWidth; // force reflow
+      setTimeout(() => innerDiv.classList.remove("tax-highlight"), 550);
 
-      void innerDiv.offsetWidth;
-
-      // Remove the class after a short delay to trigger fade-out
+      // Scroll after a tiny delay to ensure DOM updated
       setTimeout(() => {
-        innerDiv.classList.remove("tax-highlight");
-      }, 500); // small delay ensures transition applies
+        innerDiv.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 50);
     }
-        // Hide suggestions0
+  
     suggestionsContainer.innerHTML = "";
   }
+      
   
-
 
   // --- Build tree ---
   roots.forEach((node) => {
