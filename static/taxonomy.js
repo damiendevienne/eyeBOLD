@@ -193,13 +193,15 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
     }
   
-    // --- Propagate down ---
     function propagateDown(checked) {
       if (ul) {
-        ul.querySelectorAll("input[type=checkbox]").forEach(cb => (cb.checked = checked));
+        ul.querySelectorAll("input[type=checkbox]").forEach(cb => {
+          cb.checked = checked;
+          cb.indeterminate = false; // <-- reset indeterminate state
+        });
       }
     }
-  
+      
     // --- Propagate up ---
     function propagateUp(cb) {
       const li = cb.closest("li");
@@ -290,7 +292,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     rootUl.appendChild(li);
   });
 
-
+  document.getElementById("taxonomy-container").addEventListener("change", (e) => {
+    if (e.target.matches("input[type=checkbox]")) {
+      const taxoState = getTaxonomyState();
+      const counter = document.getElementById("taxonomy-counter");
+      counter.textContent = taxoState.length > 0
+        ? `(${taxoState.length} upper-level taxa selected)`
+        : "";
+    }
+  });
+  
 
 
 

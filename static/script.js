@@ -147,10 +147,11 @@ function resetResultsView() {
   document.getElementById("result-header").classList.add("bg-secondary");
 }
 
-function getCurrentQueryState() {
 
+
+function getTaxonomyState() {
   // --- Taxonomy: get name + rank of checked nodes ---
-  const taxonomy = Array.from(document.querySelectorAll("#taxonomy-container input[type=checkbox]:checked"))
+  const taxo = Array.from(document.querySelectorAll("#taxonomy-container input[type=checkbox]:checked"))
   .filter(cb => {
       // Keep this checkbox only if no ancestor checkbox is checked
       let parentLi = cb.closest("li")?.parentElement?.closest("li");
@@ -165,6 +166,12 @@ function getCurrentQueryState() {
       name: cb.dataset.taxa,
       rank: cb.dataset.rank
     }));
+  return taxo;
+}
+
+function getCurrentQueryState() {
+
+  const taxonomy = getTaxonomyState();
 
   // --- Max rank selected ---
   const rankBtn = document.querySelector("#rank-selector button.active");
