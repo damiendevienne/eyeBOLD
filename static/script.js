@@ -1,66 +1,5 @@
 let lastData = []; // store last query for export
 
-async function runQuery() {
-  document.getElementById("status").textContent = "Running ...";
-  const genus = document.getElementById("genus").value;
-  const vgenus = document.getElementById("vgenus").checked;
-  const dup = document.getElementById("dup").checked;
-  const mis = document.getElementById("mis").checked;
-
-  const url = `/api/query?genus=${encodeURIComponent(genus)}`
-            + `&verified_genus=${vgenus}`
-            + `&exclude_dup=${dup}`
-            + `&exclude_misclass=${mis}`;
-
-  try {
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-    const data = await res.json();
-    lastData = data;
-
-    const tbody = document.querySelector("#results tbody");
-    tbody.innerHTML = "";
-    data.forEach(row => {
-      const tr = document.createElement("tr");
-      row.forEach(cell => {
-        const td = document.createElement("td");
-        td.textContent = cell;
-        tr.appendChild(td);
-      });
-      tbody.appendChild(tr);
-    });
-
-    document.getElementById("status").textContent = `${data.length} results loaded.`;
-  } catch (err) {
-    console.error(err);
-    document.getElementById("status").textContent = "Error fetching data.";
-  }
-}
-
-function exportCSV() {
-  if (!lastData.length) return alert("No data to export.");
-  const csv = lastData.map(r => r.join(",")).join("\n");
-  const blob = new Blob([csv], {type: 'text/csv'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'results.csv';
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
-function exportJSON() {
-  if (!lastData.length) return alert("No data to export.");
-  const json = JSON.stringify(lastData, null, 2);
-  const blob = new Blob([json], {type: 'application/json'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'results.json';
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
 async function runTest() {
   document.getElementById("status").textContent = "Building query...";
   const currentState = getCurrentQueryState();
@@ -78,7 +17,9 @@ async function runTest() {
     // Display the generated SQL query in the debug <pre>
     document.getElementById("debug-query").textContent = data.sql;
     
-    console.log(data.results);
+    console.log(data);
+    console.log("Number of results:", data.results.length);
+
 
     // Also display the JSON object sent    
     document.getElementById("debug-query-json-sent").textContent = JSON.stringify(currentState, null, 2);
@@ -90,34 +31,140 @@ async function runTest() {
   }
 }
 
+async function runQuery() {
+  // UI feedback
+  const statusEl = document.getElementById("status");
+  statusEl.textContent = "Running query...";
 
-// async function runTest() {
-//   document.getElementById("status").textContent = "Running query...";
-//   const currentState = getCurrentQueryState();
-//   // Convert object to string for display
-//   document.getElementById("debug-query").textContent = JSON.stringify(currentState, null, 2);
-//   document.getElementById("status").textContent = "Done";
-// }
+  const currentState = getCurrentQueryState();
 
+  try {
+    const res = await fetch("/api/build_query", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(currentState)
+    });
+
+    if (!res.ok) throw new Error(`Server error: ${res.status}`);
+    const payload = await res.json();
+
+
+    // Display the JSON object sent    
+    document.getElementById("debug-query-json-sent").textContent = JSON.stringify(currentState, null, 2);
+
+    // Debug - show SQL in debug panel if you want
+    if (payload.sql) {
+      document.getElementById("debug-query").textContent = payload.sql;
+    }
+
+    // Extract columns, rows, total_count
+    const columns = payload.columns || [];
+    const rows = payload.results || [];
+    const totalCount = payload.total_count ?? payload.totalCount ?? (payload.nbrows || rows.length);
+
+    console.log("payload:", payload);
+
+    // Render results
+    renderResults(columns, rows, totalCount);
+
+    console.log("XX", payload);
+    // Enable export buttons
+    document.getElementById("export-json").disabled = false;
+    document.getElementById("export-tsv").disabled = false;
+    document.getElementById("export-fasta").disabled = false;
+
+    statusEl.textContent = `Query OK — showing ${rows.length} rows (total ${totalCount})`;
+  } catch (err) {
+    console.error(err);
+    document.getElementById("status").textContent = "Error running query.";
+    document.getElementById("results-count").textContent = "Error";
+    document.getElementById("results-thead").innerHTML = "";
+    document.getElementById("results-tbody").innerHTML = "";
+  }
+}
+
+// Render table given columns array and rows (rows = array of objects)
+function renderResults(columns, rows, totalCount) {
+  console.log("Rendering results:", columns, rows);
+  // header
+  const thead = document.getElementById("results-thead");
+  thead.innerHTML = ""; // clear
+  columns.forEach(col => {
+    const th = document.createElement("th");
+    th.textContent = col;
+    thead.appendChild(th);
+  });
+
+  // body
+  const tbody = document.getElementById("results-tbody");
+  tbody.innerHTML = ""; // clear
+  rows.forEach(rowObj => {
+    const tr = document.createElement("tr");
+    columns.forEach(col => {
+      const td = document.createElement("td");
+      // handle undefined/null values
+      let v = rowObj[col];
+      if (v === null || v === undefined) v = "";
+      // shorten long sequences in table view to keep table readable
+      if (typeof v === "string" && v.length > 200) {
+        td.textContent = v.slice(0, 120) + "…";
+        td.title = v; // full value on hover
+      } else {
+        td.textContent = v;
+      }
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+
+  // count text
+  const countEl = document.getElementById("results-count");
+  countEl.textContent = `The query returned ${totalCount} total matches. Showing the first ${rows.length} rows`;
+  // Change the class of the result-header div
+  document.getElementById("result-header").classList.remove("bg-secondary");
+  document.getElementById("result-header").classList.add("bg-success");
+
+}
+
+//the following function ensures that changes in checked box and buttons 
+// resets the result panel to prevent discrepancy between options and displayed results
+
+function resetResultsView() {
+  // Clear the table
+  document.getElementById("results-thead").innerHTML = "";
+  document.getElementById("results-tbody").innerHTML = "";
+  
+  // Reset counter
+  const countDiv = document.getElementById("results-count");
+  if (countDiv) countDiv.textContent = "No results yet";
+  
+  // Disable export buttons
+  document.getElementById("export-json").disabled = true;
+  document.getElementById("export-tsv").disabled = true;
+  document.getElementById("export-fasta").disabled = true;
+  // Change the class of the result-header div
+  document.getElementById("result-header").classList.remove("bg-success");
+  document.getElementById("result-header").classList.add("bg-secondary");
+}
 
 function getCurrentQueryState() {
 
-// --- Taxonomy: get name + rank of checked nodes ---
-const taxonomy = Array.from(document.querySelectorAll("#taxonomy-container input[type=checkbox]:checked"))
+  // --- Taxonomy: get name + rank of checked nodes ---
+  const taxonomy = Array.from(document.querySelectorAll("#taxonomy-container input[type=checkbox]:checked"))
   .filter(cb => {
-    // Keep this checkbox only if no ancestor checkbox is checked
-    let parentLi = cb.closest("li")?.parentElement?.closest("li");
-    while (parentLi) {
-      const parentCb = parentLi.querySelector("input[type=checkbox]");
-      if (parentCb?.checked) return false; // parent is checked → skip this node
-      parentLi = parentLi.parentElement?.closest("li");
-    }
-    return true; // keep this one
-  })
-  .map(cb => ({
-    name: cb.dataset.taxa,
-    rank: cb.dataset.rank
-  }));
+      // Keep this checkbox only if no ancestor checkbox is checked
+      let parentLi = cb.closest("li")?.parentElement?.closest("li");
+      while (parentLi) {
+        const parentCb = parentLi.querySelector("input[type=checkbox]");
+        if (parentCb?.checked) return false; // parent is checked → skip this node
+        parentLi = parentLi.parentElement?.closest("li");
+      }
+      return true; // keep this one
+    })
+    .map(cb => ({
+      name: cb.dataset.taxa,
+      rank: cb.dataset.rank
+    }));
 
   // --- Max rank selected ---
   const rankBtn = document.querySelector("#rank-selector button.active");
@@ -164,17 +211,21 @@ const taxonomy = Array.from(document.querySelectorAll("#taxonomy-container input
   };
 }
 
+document.addEventListener("DOMContentLoaded", () => {
+  // --- Watch for any interaction ---
+  document.addEventListener("change", (e) => {
+    if (e.target.matches("input, select, textarea")) {
+      resetResultsView();
+    }
+  });
+
+  document.addEventListener("click", (e) => {
+    if (e.target.matches("button")) {
+      resetResultsView();
+    }
+  });
+});
 
 
-
-document.getElementById("run").addEventListener("click", runTest);
-//document.getElementById("run").addEventListener("click", runQuery);
-
-// document.getElementById("exportCsv").addEventListener("click", exportCSV);
-// document.getElementById("exportJson").addEventListener("click", exportJSON);
-
-
-
-
-// debug.js — displays server-built query live
-// script.js — debug query display
+//document.getElementById("run").addEventListener("click", runTest);
+document.getElementById("run").addEventListener("click", runQuery);
