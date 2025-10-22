@@ -166,6 +166,9 @@ function getTaxonomyState() {
       name: cb.dataset.taxa,
       rank: cb.dataset.rank
     }));
+  console.log("Current taxonomy state:", taxo);
+  //deal with the case where root is selected: 
+  if (taxo.length === 1 && taxo[0].name === "Root") return [];
   return taxo;
 }
 
@@ -227,7 +230,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   document.addEventListener("click", (e) => {
-    if (e.target.matches("button")) {
+    if (e.target.matches("button") && !e.target.classList.contains("no-reset")) {
       resetResultsView();
     }
   });
@@ -236,3 +239,47 @@ document.addEventListener("DOMContentLoaded", () => {
 
 //document.getElementById("run").addEventListener("click", runTest);
 document.getElementById("run").addEventListener("click", runQuery);
+
+
+const overlay = document.getElementById("export-overlay");
+
+document.querySelectorAll(".export-btn").forEach(btn => {
+  btn.addEventListener("click", async () => {
+    const format = btn.dataset.format;
+
+    try {
+      // Show overlay
+      overlay.style.display = "flex";
+
+      const queryData = getCurrentQueryState();
+
+      const res = await fetch(`/api/export_query?format=${format}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(queryData)
+      });
+
+      if (!res.ok) throw new Error(`Export failed: ${res.status}`);
+
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+
+      let filename = `export.${format}`;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+
+    } catch (err) {
+      console.error(err);
+      alert("Export failed. See console for details.");
+    } finally {
+      // Hide overlay
+      overlay.style.display = "none";
+    }
+  });
+});
+

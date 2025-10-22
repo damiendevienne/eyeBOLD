@@ -213,9 +213,9 @@
           <div class="d-flex justify-content-between align-items-center mb-2">
             <div id="results-count" class="fw-bold">No results yet</div>
             <div>
-              <button id="export-json" class="btn btn-sm btn-outline-secondary" disabled>Export JSON</button>
-              <button id="export-tsv"  class="btn btn-sm btn-outline-secondary" disabled>Export TSV</button>
-              <button id="export-fasta" class="btn btn-sm btn-outline-secondary" disabled>Export FASTA</button>
+              <button id="export-json" class="btn btn-sm btn-outline-secondary export-btn no-reset" data-format="json" disabled>Export JSON</button>
+              <button id="export-tsv"  class="btn btn-sm btn-outline-secondary export-btn no-reset" data-format="tsv" disabled>Export TSV</button>
+              <button id="export-fasta" class="btn btn-sm btn-outline-secondary export-btn no-reset" data-format="fasta" disabled>Export FASTA</button>
             </div>
           </div>
         
@@ -240,11 +240,13 @@
           <div id="status" class="text-muted mb-2"></div>
         </div>
         <div class="card-body">
+          Object built and sent to server:
+          <pre id="debug-query-json-sent" class="text-muted mb-0" style="white-space: pre-wrap; font-size: 0.9em;">
+            No object built and sent yet.
+          </pre>
+          SQL query built by server:
           <pre id="debug-query" class="text-muted mb-0" style="white-space: pre-wrap; font-size: 0.9em;">
             No query built yet.
-          </pre>
-          <pre id="debug-query-json-sent" class="text-muted mb-0" style="white-space: pre-wrap; font-size: 0.9em;">
-            No object yet.
           </pre>
         </div>
       </div>
@@ -293,6 +295,10 @@
     </div>
 
 
+    <div id="export-overlay">
+      Exporting... 
+      <span class="spinner-border spinner-border-sm" role="status"></span>
+    </div>
 
 
 

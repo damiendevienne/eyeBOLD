@@ -292,6 +292,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     rootUl.appendChild(li);
   });
 
+  // --- Taxonomy change handler for counter ---
   document.getElementById("taxonomy-container").addEventListener("change", (e) => {
     if (e.target.matches("input[type=checkbox]")) {
       const taxoState = getTaxonomyState();

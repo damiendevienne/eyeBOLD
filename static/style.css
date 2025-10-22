@@ -112,15 +112,45 @@ input[type="checkbox"].form-check-input:indeterminate::after {
   left: 50%;
   transform: translate(-50%, -50%);
 }
-.tax-inner {
-  transition: color 1.5s ease;
-}
-
-.tax-inner.tax-highlight {
-  color: #ee9127; /* highlight color */
-}
 
 .form-check-input:checked {
   background-color: #ee9127;
   border-color: #c3761e;
+}
+
+.tax-inner {
+  transition: color 2.5s ease, transform 1.5s ease;
+}
+
+.tax-inner.tax-highlight {
+  color: #ee9127;   /* highlight color */
+  transform: scale(1.2); /* simulate bold */
+}
+
+/* Full-page overlay for exports */
+#export-overlay {
+  display: none;               /* hidden by default */
+  position: fixed;
+  top: 0; 
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5); /* semi-transparent black */
+  z-index: 1050;               /* above most elements */
+  justify-content: center;
+  align-items: center;
+  
+  color: white;
+  font-size: 1.5rem;
+  font-weight: bold;
+  text-align: center;
+  pointer-events: auto;        /* block interactions below */
+}
+
+/* Optional: spinner using Bootstrap or custom */
+#export-overlay .spinner-border {
+  margin-left: 10px;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-width: 0.2em;
 }
